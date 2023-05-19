@@ -1,23 +1,47 @@
 //Scenes defined up here
-//Non-level scenes will have a lot of stuff here,
-//but level scenes will just extend the levelTemplate object,
-//and the differences are passed into it as arguments.
+//When I start reusing code I will move things to prefabs.js and levelTemplate.js
 
-const game = new Phaser.game({
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 1080,
-        height: 1920
-    },
-    scene: [],
-    powerPerformance: "high-performance",
-    title: "Stalactitans",
-    physics: {
-        default: "arcade",
-        arcade: {
-            //this is a line to activate debug mode in development
-            debug: true
-        }
+class TitleScreen extends Phaser.Scene {};
+
+class Intro extends Phaser.Scene {};
+
+class Level1 extends Level {
+    constructor() {
+        super('Level1');
     }
-})
+
+    create() {
+    }
+
+};
+
+class Summary extends Phaser.Scene {};
+//I can reuse the summary for multiple levels by passing variables
+//into the constructor
+
+class Level2 extends Level {
+
+};
+
+class Level3 extends Level {
+
+};
+
+class Ending extends Phaser.Scene {};
+
+// Create Phaser game
+var config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    physics: {
+      default: 'arcade',
+      arcade: {
+        gravity: { y: 0 },
+        debug: false
+      }
+    },
+    scene: [Level1]
+  };
+
+let game = new Phaser.Game(config);
