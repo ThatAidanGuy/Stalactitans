@@ -7,12 +7,9 @@ class Intro extends Phaser.Scene {};
 
 class Level1 extends Level {
     constructor() {
-        super('Level1');
+        super('Level1', 3);
     }
-
-    create() {
-    }
-
+    //Note: do not put anything else here, it will override the level template
 };
 
 class Summary extends Phaser.Scene {};
@@ -30,7 +27,7 @@ class Level3 extends Level {
 class Ending extends Phaser.Scene {};
 
 // Create Phaser game
-var config = {
+let config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
