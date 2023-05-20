@@ -3,6 +3,10 @@ class Level extends Phaser.Scene {
         super(name);
         this.name = name;
         this.spawnTime = spawnTime;
+        //global variable container
+        this.container = [];
+        //specific for rotating variable, that just makes this easier
+        this.rotatingContainer = [];
     }
 
     preload() {
@@ -19,6 +23,8 @@ class Level extends Phaser.Scene {
         //set up simple variables in advance
         let gameOver = false;
         let levelClear = false;
+        let hearts = 3;
+        let rotating = false;
         //set up camera, background color
         const x = this.cameras.main.centerX;
         const y = this.cameras.main.centerY;
@@ -56,7 +62,9 @@ class Level extends Phaser.Scene {
             switch (event.key) {
                 case "j":
                     if (steve.angle == 0) {
-                        this.tweens.add({
+                        rotating = true;
+                        this.rotatingContainer.push(rotating);
+                        let leftRotation = this.tweens.add({
                             targets: steve,
                             angle: steve.angle + 45,
                             duration: 250,
@@ -68,6 +76,9 @@ class Level extends Phaser.Scene {
                                     duration: 500,
                                     ease: 'Linear'
                                 });
+                                rotating = false;
+                                this.rotatingContainer.push(rotating);
+
                             },
                             callbackScope: this
                         });
@@ -76,7 +87,9 @@ class Level extends Phaser.Scene {
 
                 case "k":
                     if (steve.angle == 0) {
-                        this.tweens.add({
+                        rotating = true;
+                        this.rotatingContainer.push(rotating);
+                        let rightRotation = this.tweens.add({
                             targets: steve,
                             angle: steve.angle - 45,
                             duration: 250,
@@ -88,6 +101,8 @@ class Level extends Phaser.Scene {
                                     duration: 500,
                                     ease: 'Linear'
                                 });
+                                rotating = false;
+                                this.rotatingContainer.push(rotating);
                             },
                             callbackScope: this
                         });
@@ -96,6 +111,11 @@ class Level extends Phaser.Scene {
 
             }
         })
+
+        //attach rotating variable to J and K tweens
+        /*TweenOnUpdateCallback(leftRotation, rotating, () => {
+            rotating = true;
+        })*/
 
         //create icicles
         let icicles = this.physics.add.group();
@@ -130,33 +150,75 @@ class Level extends Phaser.Scene {
         let npc13 = this.add.sprite(650, 600, 'npc_happy');
         npc13.setScale(0.3);
 
+        //push relevant variables to global variable container
+        this.container.push(icicles); //[0]
+        this.container.push(steve); //[1];
+        this.container.push(hearts); //[2];
+        this.container.push(rotating); //[3];
+
         //create icicle spawn timer
+        //but only run it every [spawnTime] seconds
         let icicleSpawnTimer = this.time.addEvent({
             delay: this.spawnTime * 1000,
             loop: true,
-            callback: spawnIcicle(), //this is in update()
+            callback: this.spawnIcicle, //this is its own function()
             callbackScope: this
         })
+        this.spawnIcicle();
+
+        }
+
+        //define specific functions in advance
+        spawnIcicle() {
+            let icicles = this.container[0];
+            let steve = this.container[1];
+            let rotating = this.rotatingContainer[0];
+            if (!rotating) {
+                rotating = false;
+            }
+            
+
+                let x = Phaser.Math.RND.between(100, 700) //stay inside screen
+                //make sure icicles don't overlap
+                icicles.getChildren().forEach(function (icicle) {
+                    while (Math.abs(x - icicle.x) < 100) {
+                        x = Phaser.Math.RND.between(100,700);
+                    }
+                });
+                //set icicle.y to ceiling, same as player
+                let y = steve.y; //change this for levels 2 & 3 to be randomly either level
+                let icicle = icicles.create(x,y, 'icicle');
+                icicle.setScale(0.2);
+                icicle.setVelocityY(0);
+                this.physics.add.collider(steve, icicle);
+                icicle.body.setImmovable();
+
+                //icicle & player interaction
+                this.physics.add.overlap(steve, icicle, () => {
+                    console.log(rotating);
+                    if (rotating) {
+                        icicle.setTexture('shards');
+                        this.tweens.add({
+                            targets: icicle,
+                            alpha: {from: 1, to: 0},
+                            duration: 250,
+                            onComplete: function() {
+                                /*this.tweens.add({
+                                    targets: icicle,
+                                    y: 2000,
+                                    duration: 1
+                                })*/
+                            }
+                        })
+                    }
+                }, null, this);
+
+                
         }
 
 
     update() {
-        console.log("Update is running");
-        //spawn icicle
-        function spawnIcicle() {
-        let x = Phaser.Math.RND.between(100, 700) //stay inside screen
-        //make sure icicles don't overlap
-        icicles.getChildren().forEach(function (icicle) {
-            while (Math.abs(x - icicle.x) < 100) {
-                x = Phaser.Math.RND.between(100,700);
-            }
-        });
-        //set icicle.y to ceiling, same as player
-        let y = steve.y; //change this for levels 2 & 3 to be randomly either level
-        let icicle = icicles.create(x,y, 'icicle');
-        icicle.setScale(0.2);
-        icicle.setVelocityY(0);
     }
+};
 
-}
-}
+//in progress: collision
